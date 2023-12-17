@@ -14,6 +14,11 @@ Methods of spacial prediction will be compared based on:
  - Amount and complexity of preparatory procedures required before using methods
  - Quality and availability of materials explaining methods and their usage in Internet
 
+## Data used
+Methods are tested on data from following sources:
+ - Poland DEM (Digital Elevation Model), downloaded from [https://mapy.geoportal.gov.pl/](https://mapy.geoportal.gov.pl/)
+ - Generated data
+
 ## Project Organization
     ├── README.md          <- The top-level README for developers using this project.
     ├── data
