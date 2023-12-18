@@ -1,14 +1,14 @@
 # SPDB_project-spatial_prediction
 
 ## Objective
-The main purpose of this project is to test and compare differents methods of spacial prediction that are available in Python.  
-Scope of the project includes following methods of spacial prediction:
+The main purpose of this project is to test and compare differents methods of spatial prediction that are available in Python.  
+Scope of the project includes following methods of spatial prediction:
  - IDW (Inverse Distance Weighting)
  - Kriging
  - Linear regression
 
 ## Methods of comparison
-Methods of spacial prediction will be compared based on:
+Methods of spatial prediction will be compared based on:
  - Accuracy and robustness of calculated results
  - Time required to calculate the results in relation to amount of data being processed
  - Amount and complexity of preparatory procedures required before using methods
