@@ -46,6 +46,8 @@ Methods are tested on data from following sources:
         ├── models         <- Scripts to train models and then use trained models to make
         │                     predictions
         │
+        ├── util           <- Utility functions used in other scripts
+        │
         └── visualization  <- Scripts to create exploratory and results oriented visualizations
 
 <p><small>Project based on the <a target="_blank" href="https://drivendata.github.io/cookiecutter-data-science/">cookiecutter data science project template</a>. #cookiecutterdatascience</small></p>

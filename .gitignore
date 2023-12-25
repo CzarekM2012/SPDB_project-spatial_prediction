@@ -6,3 +6,6 @@ pyvenv.cfg
 
 # remove data from version control by default
 data/*
+
+# CPython compilation results
+**/__pycache__/*
