@@ -3,3 +3,6 @@ Lib/
 Include/
 Scripts/
 pyvenv.cfg
+
+# remove data from version control by default
+data/*
