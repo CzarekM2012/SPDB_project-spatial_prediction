@@ -52,3 +52,14 @@ Methods are tested on data from following sources:
         └── visualization  <- Scripts to create exploratory and results oriented visualizations
 
 <p><small>Project based on the <a target="_blank" href="https://drivendata.github.io/cookiecutter-data-science/">cookiecutter data science project template</a>. #cookiecutterdatascience</small></p>
+
+## Dependencies
+ - Python 3.12
+ - modules listed in `requirements.txt`
+### Issues
+#### Scikit-learn
+Building dependencies of module requires C++ compiler and headers for python.  
+
+On Linux systems they can be downloaded by calling `apt install g++` and `apt-get install python3.12-dev` respectively.
+
+On Windows you need visit [Microsoft's page of Visual studio](https://visualstudio.microsoft.com/), go to `Downloads` and download at least `Build Tools for Visual Studio`. Installer executable will be downloaded. You need to run it and download the package for programming C++ applications.
