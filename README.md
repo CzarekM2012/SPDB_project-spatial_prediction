@@ -57,6 +57,10 @@ Methods are tested on data from following sources:
  - Python 3.12
  - modules listed in `requirements.txt`
 ### Issues
+
+#### Pyinterpolate
+When calling `pip install pyinterpolate` on Windows, `dask` will be missing from the list of modules required by `pyinterpolate` and will not be installed. This issue did not appear on Ubuntu.
+
 #### Scikit-learn
 Building dependencies of module requires C++ compiler and headers for python.  
 
