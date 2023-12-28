@@ -5,6 +5,9 @@ Scripts/
 pyvenv.cfg
 .venv/*
 
+# remove models from version control by default
+models/*
+
 # remove data from version control by default
 data/*
 
