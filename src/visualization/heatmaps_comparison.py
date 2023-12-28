@@ -11,7 +11,7 @@ from src.util.data import subsample
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        usage="""Predict missing values in data using choosen model and generate graphical
+        description="""Predict missing values in data using choosen model and generate graphical
         representations"""
     )
     parser.add_argument(
@@ -37,7 +37,8 @@ def parse_args():
         help="File containing model to be used for predictions",
     )
     parser.add_argument(
-        "-s --save-name",
+        "-s",
+        "--save-name",
         dest="save_name",
         type=Path,
         default="heatmaps",
