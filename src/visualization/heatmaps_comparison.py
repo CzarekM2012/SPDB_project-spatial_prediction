@@ -79,7 +79,7 @@ if __name__ == "__main__":
 
     data_ratio = (samples.size - np.count_nonzero(np.isnan(samples))) / samples.size
     difference = predictions - ref_data
-    mse = np.sum(np.square(difference))
+    mse = np.sum(np.square(difference)) / difference.size
     max_absolute_difference = np.absolute(difference).max()
 
     fig, axs = plt.subplots(nrows=2, ncols=2)
@@ -99,7 +99,7 @@ if __name__ == "__main__":
     show_heatmap(
         axs[1][1],
         difference,
-        "Difference",
+        f"Difference (MSE={mse:.2f})",
         "bwr",
         vmin=-max_absolute_difference,
         vmax=max_absolute_difference,
