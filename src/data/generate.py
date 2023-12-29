@@ -1,5 +1,7 @@
 from pathlib import Path
+
 import numpy as np
+
 from src.util.data_io import write_data
 
 

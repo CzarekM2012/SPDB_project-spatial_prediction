@@ -1,8 +1,9 @@
 from argparse import ArgumentParser
 from pathlib import Path
-from src.util.data_io import read_data, write_data
+
 from src.util.cli import limited_float
 from src.util.data import subsample
+from src.util.data_io import read_data, write_data
 
 _TARGET_SUFFIX = "_subsampled"
 

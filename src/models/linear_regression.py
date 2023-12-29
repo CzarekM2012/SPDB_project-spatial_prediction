@@ -1,10 +1,12 @@
 import sys
-from enum import Enum
 from argparse import ArgumentParser
+from enum import Enum
 from pathlib import Path
+
 import numpy as np
-from sklearn.linear_model import LinearRegression
 from joblib import dump, load
+from sklearn.linear_model import LinearRegression
+
 from src.util.data_io import read_data, write_data
 
 

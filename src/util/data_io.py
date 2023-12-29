@@ -1,4 +1,5 @@
 from pathlib import Path
+
 import numpy as np
 
 _COLUMNS_NUMBER_HEADER = "ncols"
