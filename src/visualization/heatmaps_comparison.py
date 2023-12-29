@@ -3,11 +3,11 @@ Generates heatmaps of data, predicted values and their difference
 """
 import argparse
 from pathlib import Path
-import matplotlib
+
 import matplotlib.pyplot as plt
 import numpy as np
-from src.util.data_io import read_data
 
+from src.util.data_io import read_data
 
 _TARGET_SUFFIX = "_comparison"
 
@@ -55,9 +55,11 @@ def parse_args():
     return parser.parse_args()
 
 
-def show_heatmap(ax, data: np.ndarray, title: str, colormap: str = "jet"):
+def show_heatmap(
+    ax, data: np.ndarray, title: str, colormap: str = "jet", vmin=None, vmax=None
+):
     ax.set_title(title)
-    heatmap = ax.imshow(data, cmap=colormap)
+    heatmap = ax.imshow(data, cmap=colormap, vmin=vmin, vmax=vmax)
     ax.invert_yaxis()
     plt.colorbar(heatmap)
 
@@ -75,20 +77,33 @@ if __name__ == "__main__":
         )
     args.target = args.target.with_suffix(".png")
 
+    data_ratio = (samples.size - np.count_nonzero(np.isnan(samples))) / samples.size
     difference = predictions - ref_data
+    mse = np.sum(np.square(difference))
+    max_absolute_difference = np.absolute(difference).max()
 
     fig, axs = plt.subplots(nrows=2, ncols=2)
     fig.tight_layout()
-    data_ratio = (samples.size - np.count_nonzero(np.isnan(samples))) / samples.size
+
     x, y = samples.nonzero()
     axs[0][0].set_title(
         f"Basis of prediction ({data_ratio*100:.2f}% of reference data)"
     )
     plot = axs[0][0].scatter(x, y, s=0.1, c=samples[x, y], cmap="jet")
     plt.colorbar(plot)
+
     show_heatmap(axs[1][0], ref_data, "Reference data")
     show_heatmap(axs[0][1], predictions, "Predicted data")
-    show_heatmap(axs[1][1], difference, "Difference", "bwr")
+    # Range of values is set manually to ensure that 0 is the center and therefore will be
+    # white in bwr colormap
+    show_heatmap(
+        axs[1][1],
+        difference,
+        "Difference",
+        "bwr",
+        vmin=-max_absolute_difference,
+        vmax=max_absolute_difference,
+    )
 
     plt.savefig(args.target, bbox_inches="tight")
     if args.display:
