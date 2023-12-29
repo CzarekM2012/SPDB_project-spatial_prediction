@@ -91,4 +91,5 @@ if __name__ == "__main__":
     show_heatmap(axs[1][1], difference, "Difference", "bwr")
 
     plt.savefig(args.target, bbox_inches="tight")
-    plt.show()
+    if args.display:
+        plt.show()
