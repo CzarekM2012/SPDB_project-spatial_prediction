@@ -54,16 +54,22 @@ Methods are tested on data from following sources:
 <p><small>Project based on the <a target="_blank" href="https://drivendata.github.io/cookiecutter-data-science/">cookiecutter data science project template</a>. #cookiecutterdatascience</small></p>
 
 ## Dependencies
- - Python 3.12
- - modules listed in `requirements.txt`
+ - Python 3.11
+ - scikit-learn
+ - scikit-gstat
+ - PyGeM
 ### Issues
 
 #### Pyinterpolate
 When calling `pip install pyinterpolate` on Windows, `dask` will be missing from the list of modules required by `pyinterpolate` and will not be installed. This issue did not appear on Ubuntu.
 
+After installing `dask`, `libtiff` module couldn't find `libtiff3.dll` file.  
+On Linux installing package recommended in error message did not fix the issue.  
+On Windows `pyinterpolate` started raising errors about some file not being a "valid Win32 application"
+
 #### Scikit-learn
 Building dependencies of module requires C++ compiler and headers for python.  
 
-On Linux systems they can be downloaded by calling `apt install g++` and `apt-get install python3.12-dev` respectively.
+On Linux systems they can be downloaded by calling `apt install g++` and `apt-get install python3.11-dev` respectively.
 
 On Windows you need visit [Microsoft's page of Visual studio](https://visualstudio.microsoft.com/), go to `Downloads` and download at least `Build Tools for Visual Studio`. Installer executable will be downloaded. You need to run it and download the package for programming C++ applications.
