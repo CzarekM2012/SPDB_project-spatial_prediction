@@ -16,6 +16,3 @@ reports/*
 
 # CPython compilation results
 **/__pycache__/*
-
-# repositories that not pip-installable modules are built from
-repos/*

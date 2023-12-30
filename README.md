@@ -55,9 +55,7 @@ Methods are tested on data from following sources:
 
 ## Dependencies
  - Python 3.11
- - scikit-learn
- - scikit-gstat
- - PyGeM
+ - modules listed in `requirements.txt`
 ### Issues
 
 #### Pyinterpolate
@@ -73,3 +71,6 @@ Building dependencies of module requires C++ compiler and headers for python.
 On Linux systems they can be downloaded by calling `apt install g++` and `apt-get install python3.11-dev` respectively.
 
 On Windows you need visit [Microsoft's page of Visual studio](https://visualstudio.microsoft.com/), go to `Downloads` and download at least `Build Tools for Visual Studio`. Installer executable will be downloaded. You need to run it and download the package for programming C++ applications.
+
+#### PyGeM
+Since this module is supposed to be used for geometrical morphing (i.e. transforming sets of points with known coordinates) it was not possible to use its IDW implementation to predict unknown value at known localizations
