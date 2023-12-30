@@ -85,11 +85,11 @@ if __name__ == "__main__":
     fig, axs = plt.subplots(nrows=2, ncols=2)
     fig.tight_layout()
 
-    x, y = samples.nonzero()
+    y, x = samples.nonzero()
     axs[0][0].set_title(
         f"Basis of prediction ({data_ratio*100:.2f}% of reference data)"
     )
-    plot = axs[0][0].scatter(x, y, s=0.1, c=samples[x, y], cmap="jet")
+    plot = axs[0][0].scatter(x, y, s=0.1, c=samples[y, x], cmap="jet")
     plt.colorbar(plot)
 
     show_heatmap(axs[1][0], ref_data, "Reference data")
