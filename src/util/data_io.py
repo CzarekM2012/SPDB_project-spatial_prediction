@@ -23,8 +23,8 @@ def write_data(dest: Path, data: np.ndarray):
     with open(dest, "w", encoding="utf-8") as writer:
         writer.writelines(
             [
-                f"{_ROWS_NUMBER_HEADER}        {data.shape[1]}\n",
-                f"{_COLUMNS_NUMBER_HEADER}        {data.shape[0]}\n",
+                f"{_COLUMNS_NUMBER_HEADER}        {data.shape[1]}\n",
+                f"{_ROWS_NUMBER_HEADER}        {data.shape[0]}\n",
             ]
         )
         np.savetxt(writer, data)
