@@ -1,9 +1,11 @@
 from argparse import ArgumentParser
 from pathlib import Path
+
 import numpy as np
-from pyinterpolate import inverse_distance_weighting
-from src.util.data_io import read_data, write_data
+from photutils.utils import ShepardIDWInterpolator
+
 from src.util.cli import limited_float
+from src.util.data_io import read_data, write_data
 
 _PREDICTED_SUFFIX = "_predicted_idw"
 
@@ -48,15 +50,14 @@ def _parse_args():
 
 if __name__ == "__main__":
     args = _parse_args()
-    incomplete_data = read_data(args.query)
-    predictions = []
-    inverse_distance_weighting()
-    is_missing_value = np.isnan(incomplete_data)
-    data_points_indices = np.asarray(is_missing_value).nonzero()
-    observations = np.transpose(data_points_indices)
-    observations[data_points_indices, :] = incomplete_data[data_points_indices]
-    queries_indices = np.asarray(is_missing_value).nonzero()
-    predictions_indices = np.transpose(queries_indices)
-    predictions = inverse_distance_weighting(observations, queries_indices, args.neighbors, args.power)
-    incomplete_data[queries_indices] = predictions
-    write_data(args.target, incomplete_data)
+    data = read_data(args.query)
+    is_missing = np.isnan(data)
+    data_points_indices = np.asarray(np.logical_not(is_missing)).nonzero()
+    values = data[data_points_indices]
+    model = ShepardIDWInterpolator(np.array(data_points_indices).T, values)
+    missing_values_indices = np.asarray(is_missing).nonzero()
+    predictions = model(
+        np.array(missing_values_indices).T, n_neighbors=args.neighbors, power=args.power
+    )
+    data[missing_values_indices] = predictions
+    write_data(args.target, data)
