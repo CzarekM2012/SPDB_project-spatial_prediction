@@ -48,6 +48,20 @@ def _parse_args():
     return parser.parse_args()
 
 
+def predict(incomplete_data: np.ndarray, n_neighbors: int, power: float):
+    is_missing = np.isnan(incomplete_data)
+    data_points_indices = np.asarray(np.logical_not(is_missing)).nonzero()
+    values = incomplete_data[data_points_indices]
+    model = ShepardIDWInterpolator(np.array(data_points_indices).T, values)
+    missing_values_indices = np.asarray(is_missing).nonzero()
+    predictions = model(
+        np.array(missing_values_indices).T, n_neighbors=n_neighbors, power=power
+    )
+    filled_data = incomplete_data.copy()
+    filled_data[missing_values_indices] = predictions
+    return filled_data
+
+
 if __name__ == "__main__":
     args = _parse_args()
     args.neighbors = int(args.neighbors)
@@ -60,13 +74,5 @@ if __name__ == "__main__":
         )
 
     data = read_data(args.query)
-    is_missing = np.isnan(data)
-    data_points_indices = np.asarray(np.logical_not(is_missing)).nonzero()
-    values = data[data_points_indices]
-    model = ShepardIDWInterpolator(np.array(data_points_indices).T, values)
-    missing_values_indices = np.asarray(is_missing).nonzero()
-    predictions = model(
-        np.array(missing_values_indices).T, n_neighbors=args.neighbors, power=args.power
-    )
-    data[missing_values_indices] = predictions
+    data = predict(data, args.neighbors, args.power)
     write_data(args.target, data)
