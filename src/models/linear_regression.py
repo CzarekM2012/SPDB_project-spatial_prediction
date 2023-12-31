@@ -7,6 +7,7 @@ import numpy as np
 from joblib import dump, load
 from sklearn.linear_model import LinearRegression
 
+from src.models.config import MODEL_DIRECTORY
 from src.util.data_io import read_data, write_data
 
 
@@ -29,7 +30,6 @@ def _parse_command():
     return parser.parse_args(sys.argv[1:2])
 
 
-_TRAINED_DIRECTORY = "models"
 _TRAINED_PREFIX = "linear_regression_"
 
 
@@ -49,7 +49,7 @@ def _parse_train_params():
         type=Path,
         default=None,
         help=f"""File to save trained model in. If omitted model will be saved at
-        '{_TRAINED_DIRECTORY}/{_TRAINED_PREFIX}<data>'""",
+        '{MODEL_DIRECTORY}/{_TRAINED_PREFIX}<data>'""",
     )
     return parser.parse_args(sys.argv[2:])
 
@@ -89,9 +89,7 @@ def _parse_predict_params():
 def _train_subroutine():
     t_args = _parse_train_params()
     if t_args.target is None:
-        t_args.target = Path(_TRAINED_DIRECTORY) / Path(
-            f"{_TRAINED_PREFIX}{t_args.data.stem}"
-        )
+        t_args.target = MODEL_DIRECTORY / Path(f"{_TRAINED_PREFIX}{t_args.data.stem}")
     data = read_data(t_args.data)
     model = train(data)
     dump(model, t_args.target)
