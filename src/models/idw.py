@@ -43,13 +43,22 @@ def _parse_args():
         default=None,
         help=f"""File to save data with missing values filled in using predictions. If omitted,
         results will be saved in the same directory as 'data' under name
-        '<data>{_PREDICTED_SUFFIX}'""",
+        '<data>_<power>_<neighbors>{_PREDICTED_SUFFIX}'""",
     )
     return parser.parse_args()
 
 
 if __name__ == "__main__":
     args = _parse_args()
+    args.neighbors = int(args.neighbors)
+    if args.target is None:
+        integer, fraction = str(args.power).split(".")
+        last_nonzero = max([fraction.rfind(digit) for digit in "123456789"])
+        power_str = integer + fraction[: last_nonzero + 1]
+        args.target = args.query.with_stem(
+            f"{args.query.stem}_{power_str}_{args.neighbors}{_PREDICTED_SUFFIX}"
+        )
+
     data = read_data(args.query)
     is_missing = np.isnan(data)
     data_points_indices = np.asarray(np.logical_not(is_missing)).nonzero()
