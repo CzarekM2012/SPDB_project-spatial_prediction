@@ -10,7 +10,7 @@ echo Subsampling data
 DATA_FILES=("data/processed/generated/waves" "data/processed/poland_DEM/area_elevation_1")
 EXT=.asc
 SUBSAMPLE_SUFFIX=_sub
-SUBSAMPLING_RATIOS=("0.05" "0.02" "0.01")
+SUBSAMPLING_RATIOS=("0.01" "0.005" "0.001")
 SEED=1879465786
 
 for file in "${DATA_FILES[@]}"; do
@@ -28,6 +28,13 @@ for file in "${DATA_FILES[@]}"; do
     for ratio in "${SUBSAMPLING_RATIOS[@]}"; do
         python -m src.models.linear_regression train -d $file$SUBSAMPLE_SUFFIX${ratio//.}$EXT -t $LINEAR_MODEL_PREFIX${file##*/}$SUBSAMPLE_SUFFIX${ratio//.}
     done
+done
+
+# Kriging
+KRIGING_MODEL_PREFIX=models/kriging_
+
+for file in "${DATA_FILES[@]}"; do
+    python -m src.models.kriging train -d $file$SUBSAMPLE_SUFFIX${SUBSAMPLING_RATIOS[2]//.}$EXT -t $KRIGING_MODEL_PREFIX${file##*/}$SUBSAMPLE_SUFFIX${SUBSAMPLING_RATIOS[2]//.}
 done
 echo Training finished
 
@@ -53,6 +60,13 @@ for file in "${DATA_FILES[@]}"; do
         done
     done
 done
+
+# Kriging
+KRIGING_PREDICTIONS_SUFFIX=_predicted_kriging
+
+for file in "${DATA_FILES[@]}"; do
+    python -m src.models.kriging predict -m $KRIGING_MODEL_PREFIX${file##*/}$SUBSAMPLE_SUFFIX${SUBSAMPLING_RATIOS[2]//.} -q $file$SUBSAMPLE_SUFFIX${SUBSAMPLING_RATIOS[2]//.}$EXT -t $file$SUBSAMPLE_SUFFIX${SUBSAMPLING_RATIOS[2]//.}$KRIGING_PREDICTIONS_SUFFIX$EXT
+done
 echo Predicting finished
 
 
@@ -76,5 +90,12 @@ for file in "${DATA_FILES[@]}"; do
             python -m src.visualization.heatmaps_comparison -r $file$EXT -s $file$SUBSAMPLE_SUFFIX${SUBSAMPLING_RATIOS[2]//.}$EXT -p $file$SUBSAMPLE_SUFFIX${SUBSAMPLING_RATIOS[2]//.}_${power//.}_$neighbors$IDW_PREDICTIONS_SUFFIX$EXT -t $FIGURE_PREFIX${file##*/}$SUBSAMPLE_SUFFIX${SUBSAMPLING_RATIOS[2]//.}_${power//.}_$neighbors$IDW_FIGURE_SUFFIX
         done
     done
+done
+
+# Kriging
+KRIGING_FIGURE_SUFFIX=_kriging_predictions_visualization
+
+for file in "${DATA_FILES[@]}"; do
+    python -m src.visualization.heatmaps_comparison -r $file$EXT -s $file$SUBSAMPLE_SUFFIX${SUBSAMPLING_RATIOS[2]//.}$EXT -p $file$SUBSAMPLE_SUFFIX${SUBSAMPLING_RATIOS[2]//.}$KRIGING_PREDICTIONS_SUFFIX$EXT -t $FIGURE_PREFIX${file##*/}$SUBSAMPLE_SUFFIX${SUBSAMPLING_RATIOS[2]//.}$KRIGING_FIGURE_SUFFIX
 done
 echo Generating visualizations finished
