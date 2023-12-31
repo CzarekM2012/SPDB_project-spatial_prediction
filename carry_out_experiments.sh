@@ -1,104 +1,80 @@
 #! /bin/bash
-SEED=1879465786
 
-echo Processing raw data
+echo echo Processing raw data
 python -m src.data.poland_dem
 python -m src.data.generate
+echo echo Processing finished
 
-echo Processing finished
 
 echo Subsampling data
-python -m src.data.subsample -d data/processed/generated/waves.asc -t data/processed/generated/waves_sub005.asc -r 0.05 -s $SEED
-python -m src.data.subsample -d data/processed/generated/waves.asc -t data/processed/generated/waves_sub002.asc -r 0.02 -s $SEED
-python -m src.data.subsample -d data/processed/generated/waves.asc -t data/processed/generated/waves_sub001.asc -r 0.01 -s $SEED
+DATA_FILES=("data/processed/generated/waves" "data/processed/poland_DEM/area_elevation_1")
+EXT=.asc
+SUBSAMPLE_SUFFIX=_sub
+SUBSAMPLING_RATIOS=("0.05" "0.02" "0.01")
+SEED=1879465786
 
-python -m src.data.subsample -d data/processed/poland_DEM/area_elevation_1.asc -t data/processed/poland_DEM/area_elevation_1_sub005.asc -r 0.05 -s $SEED
-python -m src.data.subsample -d data/processed/poland_DEM/area_elevation_1.asc -t data/processed/poland_DEM/area_elevation_1_sub002.asc -r 0.02 -s $SEED
-python -m src.data.subsample -d data/processed/poland_DEM/area_elevation_1.asc -t data/processed/poland_DEM/area_elevation_1_sub001.asc -r 0.01 -s $SEED
-
+for file in "${DATA_FILES[@]}"; do
+    for ratio in "${SUBSAMPLING_RATIOS[@]}"; do
+        python -m src.data.subsample -d $file$EXT -t $file$SUBSAMPLE_SUFFIX${ratio//.}$EXT -r $ratio -s $SEED
+    done
+done
 echo Subsampling finished
 
 echo Training models
 # Linear regression
-python -m src.models.linear_regression train -d data/processed/generated/waves_sub005.asc -t models/linear_regression_waves_sub005
-python -m src.models.linear_regression train -d data/processed/generated/waves_sub002.asc -t models/linear_regression_waves_sub002
-python -m src.models.linear_regression train -d data/processed/generated/waves_sub001.asc -t models/linear_regression_waves_sub001
+LINEAR_MODEL_PREFIX=models/linear_regression_
 
-python -m src.models.linear_regression train -d data/processed/poland_DEM/area_elevation_1_sub005.asc -t models/linear_regression_area_elevation_1_sub005
-python -m src.models.linear_regression train -d data/processed/poland_DEM/area_elevation_1_sub002.asc -t models/linear_regression_area_elevation_1_sub002
-python -m src.models.linear_regression train -d data/processed/poland_DEM/area_elevation_1_sub001.asc -t models/linear_regression_area_elevation_1_sub001
-
+for file in "${DATA_FILES[@]}"; do
+    for ratio in "${SUBSAMPLING_RATIOS[@]}"; do
+        python -m src.models.linear_regression train -d $file$SUBSAMPLE_SUFFIX${ratio//.}$EXT -t $LINEAR_MODEL_PREFIX${file##*/}$SUBSAMPLE_SUFFIX${ratio//.}
+    done
+done
 echo Training finished
 
 echo Predicting missing values
 # Linear regression
-python -m src.models.linear_regression predict -m models/linear_regression_waves_sub005 -q data/processed/generated/waves_sub005.asc -t data/processed/generated/waves_sub005_predicted_linear.asc
-python -m src.models.linear_regression predict -m models/linear_regression_waves_sub002 -q data/processed/generated/waves_sub002.asc -t data/processed/generated/waves_sub002_predicted_linear.asc
-python -m src.models.linear_regression predict -m models/linear_regression_waves_sub001 -q data/processed/generated/waves_sub001.asc -t data/processed/generated/waves_sub001_predicted_linear.asc
+LINEAR_PREDICTIONS_SUFFIX=_predicted_linear
 
-python -m src.models.linear_regression predict -m models/linear_regression_area_elevation_1_sub005 -q data/processed/poland_DEM/area_elevation_1_sub005.asc -t data/processed/poland_DEM/area_elevation_1_sub005_predicted_linear.asc
-python -m src.models.linear_regression predict -m models/linear_regression_area_elevation_1_sub002 -q data/processed/poland_DEM/area_elevation_1_sub002.asc -t data/processed/poland_DEM/area_elevation_1_sub002_predicted_linear.asc
-python -m src.models.linear_regression predict -m models/linear_regression_area_elevation_1_sub001 -q data/processed/poland_DEM/area_elevation_1_sub001.asc -t data/processed/poland_DEM/area_elevation_1_sub001_predicted_linear.asc
+for file in "${DATA_FILES[@]}"; do
+    for ratio in "${SUBSAMPLING_RATIOS[@]}"; do
+        python -m src.models.linear_regression predict -m $LINEAR_MODEL_PREFIX${file##*/}$SUBSAMPLE_SUFFIX${ratio//.} -q $file$SUBSAMPLE_SUFFIX${ratio//.}$EXT -t $file$SUBSAMPLE_SUFFIX${ratio//.}$LINEAR_PREDICTIONS_SUFFIX$EXT
+    done
+done
 
 # IDW
-python -m src.models.idw -q data/processed/generated/waves_sub001.asc -p 0.5 -n 3 -t data/processed/generated/waves_sub001_05_3_predicted_idw.asc
-python -m src.models.idw -q data/processed/generated/waves_sub001.asc -p 0.5 -n 7 -t data/processed/generated/waves_sub001_05_7_predicted_idw.asc
-python -m src.models.idw -q data/processed/generated/waves_sub001.asc -p 0.5 -n 15 -t data/processed/generated/waves_sub001_05_15_predicted_idw.asc
+IDW_PREDICTIONS_SUFFIX=_predicted_idw
+IDW_POWERS=("0.5" "1" "2")
+IDW_N_NEIGHBORS=("3" "7" "15")
 
-python -m src.models.idw -q data/processed/generated/waves_sub001.asc -p 1 -n 3 -t data/processed/generated/waves_sub001_1_3_predicted_idw.asc
-python -m src.models.idw -q data/processed/generated/waves_sub001.asc -p 1 -n 7 -t data/processed/generated/waves_sub001_1_7_predicted_idw.asc
-python -m src.models.idw -q data/processed/generated/waves_sub001.asc -p 1 -n 15 -t data/processed/generated/waves_sub001_1_15_predicted_idw.asc
-
-python -m src.models.idw -q data/processed/generated/waves_sub001.asc -p 2 -n 3 -t data/processed/generated/waves_sub001_2_3_predicted_idw.asc
-python -m src.models.idw -q data/processed/generated/waves_sub001.asc -p 2 -n 7 -t data/processed/generated/waves_sub001_2_7_predicted_idw.asc
-python -m src.models.idw -q data/processed/generated/waves_sub001.asc -p 2 -n 15 -t data/processed/generated/waves_sub001_2_15_predicted_idw.asc
-
-python -m src.models.idw -q data/processed/poland_DEM/area_elevation_1_sub001.asc -p 0.5 -n 3 -t data/processed/poland_DEM/area_elevation_1_sub001_05_3_predicted_idw.asc
-python -m src.models.idw -q data/processed/poland_DEM/area_elevation_1_sub001.asc -p 0.5 -n 7 -t data/processed/poland_DEM/area_elevation_1_sub001_05_7_predicted_idw.asc
-python -m src.models.idw -q data/processed/poland_DEM/area_elevation_1_sub001.asc -p 0.5 -n 15 -t data/processed/poland_DEM/area_elevation_1_sub001_05_15_predicted_idw.asc
-
-python -m src.models.idw -q data/processed/poland_DEM/area_elevation_1_sub001.asc -p 1 -n 3 -t data/processed/poland_DEM/area_elevation_1_sub001_1_3_predicted_idw.asc
-python -m src.models.idw -q data/processed/poland_DEM/area_elevation_1_sub001.asc -p 1 -n 7 -t data/processed/poland_DEM/area_elevation_1_sub001_1_7_predicted_idw.asc
-python -m src.models.idw -q data/processed/poland_DEM/area_elevation_1_sub001.asc -p 1 -n 15 -t data/processed/poland_DEM/area_elevation_1_sub001_1_15_predicted_idw.asc
-
-python -m src.models.idw -q data/processed/poland_DEM/area_elevation_1_sub001.asc -p 2 -n 3 -t data/processed/poland_DEM/area_elevation_1_sub001_2_3_predicted_idw.asc
-python -m src.models.idw -q data/processed/poland_DEM/area_elevation_1_sub001.asc -p 2 -n 7 -t data/processed/poland_DEM/area_elevation_1_sub001_2_7_predicted_idw.asc
-python -m src.models.idw -q data/processed/poland_DEM/area_elevation_1_sub001.asc -p 2 -n 15 -t data/processed/poland_DEM/area_elevation_1_sub001_2_15_predicted_idw.asc
-
+for file in "${DATA_FILES[@]}"; do
+    for power in "${IDW_POWERS[@]}"; do
+        for neighbors in "${IDW_N_NEIGHBORS[@]}"; do
+            python -m src.models.idw -q $file$SUBSAMPLE_SUFFIX${SUBSAMPLING_RATIOS[2]//.}$EXT -p $power -n $neighbors -t $file$SUBSAMPLE_SUFFIX${SUBSAMPLING_RATIOS[2]//.}_${power//.}_$neighbors$IDW_PREDICTIONS_SUFFIX$EXT
+        done
+    done
+done
 echo Predicting finished
+
 
 echo Generating visualizations
 # Linear regression
-python -m src.visualization.heatmaps_comparison -r data/processed/generated/waves.asc -s data/processed/generated/waves_sub005.asc -p data/processed/generated/waves_sub005_predicted_linear.asc -t reports/figures/waves_sub005_linear_predictions_visualization
-python -m src.visualization.heatmaps_comparison -r data/processed/generated/waves.asc -s data/processed/generated/waves_sub002.asc -p data/processed/generated/waves_sub002_predicted_linear.asc -t reports/figures/waves_sub002_linear_predictions_visualization
-python -m src.visualization.heatmaps_comparison -r data/processed/generated/waves.asc -s data/processed/generated/waves_sub001.asc -p data/processed/generated/waves_sub001_predicted_linear.asc -t reports/figures/waves_sub001_linear_predictions_visualization
+FIGURE_PREFIX=reports/figures/
+LINEAR_FIGURE_SUFFIX=_linear_predictions_visualization
 
-python -m src.visualization.heatmaps_comparison -r data/processed/poland_DEM/area_elevation_1.asc -s data/processed/poland_DEM/area_elevation_1_sub005.asc -p data/processed/poland_DEM/area_elevation_1_sub005_predicted_linear.asc -t reports/figures/area_elevation_1_sub005_linear_predictions_visualization
-python -m src.visualization.heatmaps_comparison -r data/processed/poland_DEM/area_elevation_1.asc -s data/processed/poland_DEM/area_elevation_1_sub002.asc -p data/processed/poland_DEM/area_elevation_1_sub002_predicted_linear.asc -t reports/figures/area_elevation_1_sub002_linear_predictions_visualization
-python -m src.visualization.heatmaps_comparison -r data/processed/poland_DEM/area_elevation_1.asc -s data/processed/poland_DEM/area_elevation_1_sub001.asc -p data/processed/poland_DEM/area_elevation_1_sub001_predicted_linear.asc -t reports/figures/area_elevation_1_sub001_linear_predictions_visualization
+for file in "${DATA_FILES[@]}"; do
+    for ratio in "${SUBSAMPLING_RATIOS[@]}"; do
+        python -m src.visualization.heatmaps_comparison -r $file$EXT -s $file$SUBSAMPLE_SUFFIX${ratio//.}$EXT -p $file$SUBSAMPLE_SUFFIX${ratio//.}$LINEAR_PREDICTIONS_SUFFIX$EXT -t $FIGURE_PREFIX${file##*/}$SUBSAMPLE_SUFFIX${ratio//.}$LINEAR_FIGURE_SUFFIX
+    done
+done
 
 # IDW
-python -m src.visualization.heatmaps_comparison -r data/processed/generated/waves.asc -s data/processed/generated/waves_sub001.asc -p data/processed/generated/waves_sub001_05_3_predicted_idw.asc -t reports/figures/waves_sub001_05_3_idw_predictions_visualization
-python -m src.visualization.heatmaps_comparison -r data/processed/generated/waves.asc -s data/processed/generated/waves_sub001.asc -p data/processed/generated/waves_sub001_05_7_predicted_idw.asc -t reports/figures/waves_sub001_05_7_idw_predictions_visualization
-python -m src.visualization.heatmaps_comparison -r data/processed/generated/waves.asc -s data/processed/generated/waves_sub001.asc -p data/processed/generated/waves_sub001_05_15_predicted_idw.asc -t reports/figures/waves_sub001_05_15_idw_predictions_visualization
+IDW_FIGURE_SUFFIX=_idw_predictions_visualization
 
-python -m src.visualization.heatmaps_comparison -r data/processed/generated/waves.asc -s data/processed/generated/waves_sub001.asc -p data/processed/generated/waves_sub001_1_3_predicted_idw.asc -t reports/figures/waves_sub001_1_3_idw_predictions_visualization
-python -m src.visualization.heatmaps_comparison -r data/processed/generated/waves.asc -s data/processed/generated/waves_sub001.asc -p data/processed/generated/waves_sub001_1_7_predicted_idw.asc -t reports/figures/waves_sub001_1_7_idw_predictions_visualization
-python -m src.visualization.heatmaps_comparison -r data/processed/generated/waves.asc -s data/processed/generated/waves_sub001.asc -p data/processed/generated/waves_sub001_1_15_predicted_idw.asc -t reports/figures/waves_sub001_1_15_idw_predictions_visualization
-
-python -m src.visualization.heatmaps_comparison -r data/processed/generated/waves.asc -s data/processed/generated/waves_sub001.asc -p data/processed/generated/waves_sub001_2_3_predicted_idw.asc -t reports/figures/waves_sub001_2_3_idw_predictions_visualization
-python -m src.visualization.heatmaps_comparison -r data/processed/generated/waves.asc -s data/processed/generated/waves_sub001.asc -p data/processed/generated/waves_sub001_2_7_predicted_idw.asc -t reports/figures/waves_sub001_2_7_idw_predictions_visualization
-python -m src.visualization.heatmaps_comparison -r data/processed/generated/waves.asc -s data/processed/generated/waves_sub001.asc -p data/processed/generated/waves_sub001_2_15_predicted_idw.asc -t reports/figures/waves_sub001_2_15_idw_predictions_visualization
-
-python -m src.visualization.heatmaps_comparison -r data/processed/poland_DEM/area_elevation_1.asc -s data/processed/poland_DEM/area_elevation_1_sub001.asc -p data/processed/poland_DEM/area_elevation_1_sub001_05_3_predicted_idw.asc -t reports/figures/area_elevation_1_levation_1_sub001_05_3_idw_predictions_visualization
-python -m src.visualization.heatmaps_comparison -r data/processed/poland_DEM/area_elevation_1.asc -s data/processed/poland_DEM/area_elevation_1_sub001.asc -p data/processed/poland_DEM/area_elevation_1_sub001_05_7_predicted_idw.asc -t reports/figures/area_elevation_1_levation_1_sub001_05_7_idw_predictions_visualization
-python -m src.visualization.heatmaps_comparison -r data/processed/poland_DEM/area_elevation_1.asc -s data/processed/poland_DEM/area_elevation_1_sub001.asc -p data/processed/poland_DEM/area_elevation_1_sub001_05_15_predicted_idw.asc -t reports/figures/area_elevation_1_levation_1_sub001_05_15_idw_predictions_visualization
-
-python -m src.visualization.heatmaps_comparison -r data/processed/poland_DEM/area_elevation_1.asc -s data/processed/poland_DEM/area_elevation_1_sub001.asc -p data/processed/poland_DEM/area_elevation_1_sub001_1_3_predicted_idw.asc -t reports/figures/area_elevation_1_levation_1_sub001_1_3_idw_predictions_visualization
-python -m src.visualization.heatmaps_comparison -r data/processed/poland_DEM/area_elevation_1.asc -s data/processed/poland_DEM/area_elevation_1_sub001.asc -p data/processed/poland_DEM/area_elevation_1_sub001_1_7_predicted_idw.asc -t reports/figures/area_elevation_1_levation_1_sub001_1_7_idw_predictions_visualization
-python -m src.visualization.heatmaps_comparison -r data/processed/poland_DEM/area_elevation_1.asc -s data/processed/poland_DEM/area_elevation_1_sub001.asc -p data/processed/poland_DEM/area_elevation_1_sub001_1_15_predicted_idw.asc -t reports/figures/area_elevation_1_levation_1_sub001_1_15_idw_predictions_visualization
-
-python -m src.visualization.heatmaps_comparison -r data/processed/poland_DEM/area_elevation_1.asc -s data/processed/poland_DEM/area_elevation_1_sub001.asc -p data/processed/poland_DEM/area_elevation_1_sub001_2_3_predicted_idw.asc -t reports/figures/area_elevation_1_levation_1_sub001_2_3_idw_predictions_visualization
-python -m src.visualization.heatmaps_comparison -r data/processed/poland_DEM/area_elevation_1.asc -s data/processed/poland_DEM/area_elevation_1_sub001.asc -p data/processed/poland_DEM/area_elevation_1_sub001_2_7_predicted_idw.asc -t reports/figures/area_elevation_1_levation_1_sub001_2_7_idw_predictions_visualization
-python -m src.visualization.heatmaps_comparison -r data/processed/poland_DEM/area_elevation_1.asc -s data/processed/poland_DEM/area_elevation_1_sub001.asc -p data/processed/poland_DEM/area_elevation_1_sub001_2_15_predicted_idw.asc -t reports/figures/area_elevation_1_levation_1_sub001_2_15_idw_predictions_visualization
+for file in "${DATA_FILES[@]}"; do
+    for power in "${IDW_POWERS[@]}"; do
+        for neighbors in "${IDW_N_NEIGHBORS[@]}"; do
+            python -m src.visualization.heatmaps_comparison -r $file$EXT -s $file$SUBSAMPLE_SUFFIX${SUBSAMPLING_RATIOS[2]//.}$EXT -p $file$SUBSAMPLE_SUFFIX${SUBSAMPLING_RATIOS[2]//.}_${power//.}_$neighbors$IDW_PREDICTIONS_SUFFIX$EXT -t $FIGURE_PREFIX${file##*/}$SUBSAMPLE_SUFFIX${SUBSAMPLING_RATIOS[2]//.}_${power//.}_$neighbors$IDW_FIGURE_SUFFIX
+        done
+    done
+done
 echo Generating visualizations finished
